@@ -27,6 +27,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	this->Hero->Rect.y = 0;
 	this->Hero->Rect.w = tileSizeX;
 	this->Hero->Rect.h = tileSizeY;
+	//determines the hero rect size
 
 }
 
