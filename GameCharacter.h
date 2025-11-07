@@ -1,5 +1,5 @@
 #pragma once
-#include "DungeonGame.h"
+#include "Pickup.h"
 #include <SDL3_image/SDL_image.h>
 
 class GameCharacter

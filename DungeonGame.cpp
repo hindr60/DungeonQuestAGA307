@@ -1,11 +1,14 @@
 #include "DungeonGame.h"
-
+#include <SDL3/SDL.h>
+#include <SDL3_image/SDL_image.h>
 
 DungeonGame::DungeonGame(float tileSizeX, float tileSizeY)
 {
 
 	this->tileSizeX = tileSizeX;
 	this->tileSizeY = tileSizeY;
+	textures[0] = nullptr;
+	textures[1] = nullptr;
 
 }
 
@@ -17,12 +20,18 @@ DungeonGame::~DungeonGame()
 
 void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 {
-	this->Hero = new Player;
+	SDL_Surface* surface = SDL_LoadBMP("Tile_carpet_base.bmp");
+	this->textures[0] = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_DestroySurface(surface);
 
+	surface = SDL_LoadBMP("Tile_Grey_base.bmp");
+	this->textures[1] = SDL_CreateTextureFromSurface(renderer, surface);
+	SDL_DestroySurface(surface);
+
+	this->Hero = new Player;
 	//Load all textures
 	this->Hero->Texture = IMG_LoadTexture(renderer, path_Hero.c_str());
 	SDL_SetTextureScaleMode(this->Hero->Texture, SDL_SCALEMODE_NEAREST);
-
 	this->Hero->Rect.x = 0;
 	this->Hero->Rect.y = 0;
 	this->Hero->Rect.w = tileSizeX;
@@ -52,12 +61,46 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 			//this compares the pixel colour to the RGB values, giving information about the surface.
 			//col now contains pixel colour at position x,y.
 
-			//Now configure the tile at x,y with col
-
-			//this->Tiles[x][y].Configure(col, x, y, tileSizeX, add in the array of textures)
+			this->Tiles[x][y].Configure(col, (float)x, (float)y, tileSizeX, this->textures);
 
 		}
 	}
 
+	SDL_DestroySurface(surface);
+
 
 }
+
+ Tile* DungeonGame::NorthNeighbour(int currentX, int currentY, Direction dir)
+ {
+	 if (dir == Direction::North && currentY > 0) {
+		 return &Tiles[currentX][currentY - 1];
+	 }
+	 return nullptr;
+ }
+
+ Tile* DungeonGame::EastNeighbour(int currentX, int currentY, Direction dir)
+ {
+	 if (dir == Direction::East && currentX > 0) {
+		 return &Tiles[currentX + 1][currentY];
+	 }
+	 return nullptr;
+ }
+
+ Tile* DungeonGame::SouthNeighbour(int currentX, int currentY, Direction dir)
+ {
+	 if (dir == Direction::South && currentY > 0) {
+		 return &Tiles[currentX][currentY + 1];
+	 }
+	 return nullptr;
+ }
+
+ Tile* DungeonGame::WestNeighbour(int currentX, int currentY, Direction dir)
+ {
+	 if (dir == Direction::West && currentY > 0) {
+		 return &Tiles[currentX - 1][currentY];
+	 }
+	 return nullptr;
+ }
+
+ 
