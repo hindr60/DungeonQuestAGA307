@@ -4,13 +4,13 @@
 class Tile
 {
 
-	static bool CompareColours(SDL_Color& col1, SDL_Color& col2);
+	static bool CompareColours(const SDL_Color& a, const SDL_Color& b, int tolerance = 20);
 
 	//this allows for us to compare two colours to then determine the actions after
 
 public:
 	bool Walkable;
-	SDL_Texture* Texture;
+	SDL_Texture* Texture = nullptr;
 	SDL_FRect Rect;
 	void Configure(SDL_Color& color, float x, float y, float size, SDL_Texture* textures[]);
 	//we configure the colour, the direction and the texture the tile will use.

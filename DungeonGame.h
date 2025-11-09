@@ -10,7 +10,7 @@
 
 
 const static std::string path_Hero = "Textures/Hero_sword.png";
-const static std::string path_Map = "Data/Rooms/Room01.bmp";
+const static std::string path_Map = "Data/Rooms/Room05.bmp";
 enum Direction{North, East, South, West};
 
 

@@ -97,12 +97,13 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     SDL_RenderClear(renderer);
 
 
-    for (int y = 0; y < GridSizeY; y++) 
+    for (int y = 0; y < RoomSize; y++) 
     {
-        for (int x = 0; x < GridSizeX; x++) 
+        for (int x = 0; x < RoomSize; x++) 
         {
             Tile& tile = Game->Tiles[x][y];
-            SDL_RenderTexture(renderer, Game->Tiles[x][y].Texture, NULL, &Game->Tiles[x][y].Rect);
+            if (tile.Texture != nullptr)
+                SDL_RenderTexture(renderer, tile.Texture, nullptr, &tile.Rect);
         }
 
     }
