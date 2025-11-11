@@ -10,8 +10,8 @@
 
 using namespace std;
 
-const int resX = 1027;
-const int resY = 768;
+const int resX = 1000;
+const int resY = 1000;
 const int GridSizeX = 10;
 const int GridSizeY = 10;
 const float TileSize = resY / GridSizeX;

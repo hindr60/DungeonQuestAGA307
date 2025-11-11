@@ -27,6 +27,7 @@ void Tile::Configure(SDL_Color& color, float x, float y, float size, SDL_Texture
 	if (CompareColours(color, black, 10)) {
 		Walkable = false;
 		Texture = textures[1];
+		//Texture = nullptr;
 	}
 	else if (CompareColours(color, white, 20)) {
 		Walkable = true;
