@@ -19,4 +19,24 @@ enum MoveResultAction
 	LoadNewRoom = 3,
 };
 
+enum TileType 
+{
+	Floor,
+	Wall,
+	NorthDoor,
+	EastDoor,
+	SouthDoor,
+	WestDoor
+};
+
+enum class DoorDirection 
+{
+	None,
+	North,
+	South,
+	East,
+	West
+};
+
+
 

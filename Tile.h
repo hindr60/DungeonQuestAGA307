@@ -1,5 +1,10 @@
 #pragma once
 #include <SDL3/SDL.h>
+#include "Player.h"
+#include "Enums.h"
+
+
+class DungeonGame;
 
 class Tile
 {
@@ -10,12 +15,13 @@ class Tile
 
 public:
 	bool Walkable;
+	TileType type;
 	SDL_Texture* Texture = nullptr;
 	SDL_FRect Rect;
 	void Configure(SDL_Color& color, float x, float y, float size, SDL_Texture* textures[]);
 	//we configure the colour, the direction and the texture the tile will use.
-
-
+	DoorDirection Door = DoorDirection::None;
+	bool CurrentTileAllowsVoidMovement(int playerX, int playerY, Direction dir, DungeonGame* game);
 
 };
 

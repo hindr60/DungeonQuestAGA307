@@ -7,6 +7,7 @@
 #include "Player.h"
 #include "Goblin.h"
 #include "Tile.h"
+#include "Enums.h"
 
 using namespace std;
 
@@ -22,6 +23,8 @@ static SDL_Texture* heroTexture;
 
 static const int TileWidth = resX / 10;
 static const int TileHeight = resY / 10;
+
+
 
 
  /* We will use this renderer to draw into this window every frame. */
@@ -50,37 +53,77 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
     Game = new DungeonGame(TileSize, TileSize);
     Game->LoadTextures(renderer);
-    Game->LoadRoom(path_Map.c_str());
+    Game->LoadRoom(DungeonGame::RoomGrid[1][1].c_str());
 
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
 
+void PlayerMove(DungeonGame* Game, Direction dir) 
+{
+    Tile* targetTile = Game->GetNeighbour(Game->Hero->playerTileX, Game->Hero->playerTileY, dir);
+    MoveResult move(targetTile);
+
+    if (targetTile)
+    {
+        if (targetTile->Walkable)
+        {
+            move.SetAction(MoveResultAction::MoveOK);
+            Game->Hero->Move(dir);
+            Game->Hero->Rect.x = Game->Hero->playerTileX * Game->tileSizeX;
+            Game->Hero->Rect.y = Game->Hero->playerTileY * Game->tileSizeY;
+        }
+        else
+        {
+            move.SetAction(MoveResultAction::Blocked);
+        }
+    }
+    else
+    {
+    //void tiles need to be handled here
+        if (Game->Hero->CurrentTileAllowsVoidMovement(dir, Game)) 
+        {
+            move.SetAction(MoveResultAction::MoveOK);
+            Game->LoadNextRoom(dir);
+            Game->Hero->SetPositionForNewRoom(dir, RoomSize, RoomSize, Game->tileSizeX, Game->tileSizeY);
+        } 
+        else {
+            move.SetAction(MoveResultAction::Blocked);
+        }
+    }
+}
+  
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
+    
+    
     if (event->type == SDL_EVENT_QUIT) {
         return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
     }
     
     if (event->type == SDL_EVENT_KEY_DOWN)
     {
-        // keyboard events    
-        if (event->key.scancode == SDL_SCANCODE_W)
+        // keyboard events
+        // used CHATGPT to help clean up this section   
+        if (event->key.scancode == SDL_SCANCODE_W) 
         {
-            Game->Hero->Move(1, TileHeight);
+            PlayerMove(Game, Direction::North);           
         }
         if (event->key.scancode == SDL_SCANCODE_S)
         {
-            Game->Hero->Move(3, TileHeight);
+            PlayerMove(Game, Direction::South);
+            
         }
         if (event->key.scancode == SDL_SCANCODE_A)
         {
-            Game->Hero->Move(4, TileWidth);
+
+            PlayerMove(Game, Direction::West);
+            
         }
         if (event->key.scancode == SDL_SCANCODE_D)
         {
-            Game->Hero->Move(2, TileWidth);
+            PlayerMove(Game, Direction::East);
         }
 
     }

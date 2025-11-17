@@ -1,14 +1,29 @@
 #include "DungeonGame.h"
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
+#include <cstdlib>
+#include <ctime>
+
+
+int currentRoomIndex = 0;
+
+const std::string DungeonGame::RoomGrid[Grid_Size][Grid_Size] =
+{
+	{"Data/Rooms/Room01.bmp", "Data/Rooms/Room02.bmp", "Data/Rooms/Room03.bmp",},
+	{"Data/Rooms/Room02.bmp", "Data/Rooms/Room01.bmp", "Data/Rooms/Room04.bmp",},
+	{"Data/Rooms/Room04.bmp", "Data/Rooms/Room05.bmp", "Data/Rooms/Room03.bmp",}
+};
 
 DungeonGame::DungeonGame(float tileSizeX, float tileSizeY)
 {
 
 	this->tileSizeX = tileSizeX;
 	this->tileSizeY = tileSizeY;
+
 	textures[0] = nullptr;
 	textures[1] = nullptr;
+
+	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
 }
 
@@ -34,8 +49,9 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	//Load all textures
 	this->Hero->Texture = IMG_LoadTexture(renderer, path_Hero.c_str());
 	SDL_SetTextureScaleMode(this->Hero->Texture, SDL_SCALEMODE_NEAREST);
-	this->Hero->Rect.x = 3 * tileSizeX;
-	this->Hero->Rect.y = 1 * tileSizeY;
+
+	this->Hero->Rect.x = 0 * tileSizeX;
+	this->Hero->Rect.y = 4 * tileSizeY;
 	this->Hero->Rect.w = tileSizeX;
 	this->Hero->Rect.h = tileSizeY;
 	//determines the hero rect size
@@ -70,83 +86,65 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	}
 
 	SDL_DestroySurface(surface);
-
-
-	 //to double check if the map is being read from the files
-	 /*
-	 SDL_Surface* surface = SDL_LoadBMP(file);
-	 if (!surface) {
-		 SDL_Log("Failed to load BMP: %s", SDL_GetError());
-		 return;
-	 }
-	 SDL_Log("Loaded BMP successfully!");
-	 SDL_Log("Width: %d, Height %d", surface->w, surface->h);
-
-	 const SDL_PixelFormatDetails* fmt = SDL_GetPixelFormatDetails(surface->format);
-	 int bpp = SDL_BYTESPERPIXEL(surface->format);
-	 SDL_Color col;
-
-	 for (int y = 0; y < 3 && y < surface->h; y++) {
-		 for (int x = 0; x < 3 && x < surface->w; x++) {
-			 Uint8* pixel = static_cast<Uint8*>(surface->pixels) + y * surface->pitch + x * bpp;
-			 Uint32 pixelValue = 0;
-			 memcpy(&pixelValue, pixel, bpp);
-
-			 Uint8 r = (Uint8)((pixelValue & fmt->Rmask) >> fmt->Rshift);
-			 Uint8 g = (Uint8)((pixelValue & fmt->Gmask) >> fmt->Gshift);
-			 Uint8 b = (Uint8)((pixelValue & fmt->Bmask) >> fmt->Bshift);
-
-			 if (fmt->Rbits < 8) r = (r * 255) / ((1 << fmt->Rbits) - 1);
-			 if (fmt->Gbits < 8) g = (g * 255) / ((1 << fmt->Gbits) - 1);
-			 if (fmt->Bbits < 8) b = (b * 255) / ((1 << fmt->Bbits) - 1);
-
-			 col.r = r;
-			 col.g = g;
-			 col.b = b;
-
-			 if (x < 3 && y < 3)
-				 SDL_Log("Pixel (%d, %d): R=%d G=%d B=%d", x, y, col.r, col.g, col.b);
-
-			 this->Tiles[x][y].Configure(col, (float)x, (float)y, tileSizeX, this->textures);
-
-			 
-		 }
-	 }
-
-	 SDL_DestroySurface(surface);
-	 */
 }
 
- Tile* DungeonGame::NorthNeighbour(int currentX, int currentY, Direction dir)
+ void DungeonGame::LoadNextRoom(Direction dir)
  {
-	 if (dir == Direction::North && currentY > 0) {
-		 return &Tiles[currentX][currentY - 1];
+	 // if you want it randomised: int nextRoomIndex = std::rand() % 9;
+
+	 switch (dir)
+	 {
+	 case Direction::North: 
+		 if (currentGridY > 0) currentGridY--; 
+		 break;
+
+	 case Direction::South: 
+		 if (currentGridY < Grid_Size - 1) currentGridY++;
+		 break;
+
+	 case Direction::East: 
+		 if (currentGridX < Grid_Size - 1) currentGridX++;
+		 break;
+
+	 case Direction::West: 
+		 if (currentGridX > 0) currentGridX--;
+		 break;
+
 	 }
-	 return nullptr;
+
+	 const std::string& nextRoom = RoomGrid[currentGridY][currentGridX];
+	 LoadRoom(nextRoom.c_str());
+
+	 Hero->SetPositionForNewRoom(dir, RoomSize, RoomSize, tileSizeX, tileSizeY);
  }
 
- Tile* DungeonGame::EastNeighbour(int currentX, int currentY, Direction dir)
+ //used chatgpt to help create a clean neighbouring system
+ Tile* DungeonGame::GetNeighbour(int currentX, int currentY, Direction dir)
  {
-	 if (dir == Direction::East && currentX > 0) {
-		 return &Tiles[currentX + 1][currentY];
-	 }
-	 return nullptr;
- }
+	 switch (dir) 
+	 {
+	 case Direction::North:
+		 if (currentY > 0) 
+			 return &Tiles[currentX][currentY - 1];
+		 break;
 
- Tile* DungeonGame::SouthNeighbour(int currentX, int currentY, Direction dir)
- {
-	 if (dir == Direction::South && currentY > 0) {
-		 return &Tiles[currentX][currentY + 1];
-	 }
-	 return nullptr;
- }
+	 case Direction::East:
+		 if (currentX < RoomSize - 1) 
+			 return &Tiles[currentX + 1][currentY];
+		 break;
 
- Tile* DungeonGame::WestNeighbour(int currentX, int currentY, Direction dir)
- {
-	 if (dir == Direction::West && currentY > 0) {
-		 return &Tiles[currentX - 1][currentY];
+	 case Direction::South:
+		 if (currentY < RoomSize - 1) 
+			 return &Tiles[currentX][currentY + 1];
+		 break;
+
+	 case Direction::West:
+		 if (currentX > 0) 
+			 return &Tiles[currentX - 1][currentY];
+		 break;
+
 	 }
-	 return nullptr;
+	 return nullptr; // for out of bounds
  }
 
  
