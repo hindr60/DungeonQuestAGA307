@@ -31,6 +31,8 @@ public:
 	void LoadRoom(const char* file);
 	void LoadNextRoom(Direction dir);
 
+	void Update(double dt);
+
 	Player* Hero;
 	Tile Tiles[RoomSize][RoomSize];
 

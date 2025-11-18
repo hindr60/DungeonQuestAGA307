@@ -9,6 +9,10 @@
 #include "Tile.h"
 #include "Enums.h"
 
+
+static Uint64 now;
+static Uint64 last;
+
 using namespace std;
 
 const int resX = 1000;
@@ -136,6 +140,13 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void* appstate)
 {    
+    last = now;
+    now = SDL_GetPerformanceCounter();
+    double deltaTime = (double)((now - last) / (double)SDL_GetPerformanceFrequency());
+    Game->Update(deltaTime);
+
+
+
     SDL_SetRenderDrawColor(renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
     SDL_RenderClear(renderer);
 

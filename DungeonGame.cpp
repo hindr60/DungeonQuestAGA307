@@ -118,6 +118,11 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	 Hero->SetPositionForNewRoom(dir, RoomSize, RoomSize, tileSizeX, tileSizeY);
  }
 
+ void DungeonGame::Update(double dt)
+ {
+
+ }
+
  //used chatgpt to help create a clean neighbouring system
  Tile* DungeonGame::GetNeighbour(int currentX, int currentY, Direction dir)
  {
