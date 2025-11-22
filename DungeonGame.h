@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <vector>
 #include <SDL3/SDL.h>
 #include <SDL3_image/SDL_image.h>
 #include "GameCharacter.h"
@@ -7,6 +8,7 @@
 #include "Tile.h"
 #include "Enums.h"
 #include "MoveResult.h"
+#include "Goblin.h"
 
 const static std::string path_Hero = "Textures/Hero_sword.png";
 
@@ -17,6 +19,9 @@ const static std::string path_Hero = "Textures/Hero_sword.png";
 
 extern int currentRoomIndex;
 const static int RoomSize = 10;
+
+std::vector<Goblin*> Goblins;
+SDL_Texture* goblinTexture;
 
 
 
