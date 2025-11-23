@@ -45,6 +45,7 @@ static DungeonGame* Game;
 SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 {     
     SDL_SetAppMetadata(ProjectName, "1.0", "");
+       
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
@@ -56,10 +57,11 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
         return SDL_APP_FAILURE;
     }
 
+    last = SDL_GetPerformanceCounter();
+
     Game = new DungeonGame(TileSize, TileSize);
     Game->LoadTextures(renderer);
     Game->LoadRoom(DungeonGame::RoomGrid[1][1].c_str());
-
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
@@ -141,11 +143,13 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 /* This function runs once per frame, and is the heart of the program. */
 SDL_AppResult SDL_AppIterate(void* appstate)
 {    
-    last = now;
+    //got chatgpt to help me iterate the timer to work with my movement system
     now = SDL_GetPerformanceCounter();
-    double deltaTime = (double)((now - last) / (double)SDL_GetPerformanceFrequency());
-    Game->Update(deltaTime);
 
+    double deltaTime = (now - last) / (double)SDL_GetPerformanceFrequency();
+    last = now;
+    
+    Game->Update(deltaTime);
 
 
     SDL_SetRenderDrawColor(renderer, 33, 33, 33, SDL_ALPHA_OPAQUE);
@@ -164,6 +168,7 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     }
 
     SDL_RenderTexture(renderer, Game->Hero->Texture, NULL, &Game->Hero->Rect);
+
     for (Goblin* g : Goblins)
         g->Render(renderer);
 

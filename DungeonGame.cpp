@@ -7,8 +7,37 @@
 
 int currentRoomIndex = 0;
 
+//using this will prevent circular dependancy errors
 std::vector<Goblin*> Goblins;
 SDL_Texture* goblinTexture = nullptr;
+
+//to cleanly spawn the goblins in every room, we will use arrays
+struct GoblinSpawn 
+{
+	int x;
+	int y;
+};
+
+//using 3 sets of 3 to be in line with our room amount
+static std::vector<GoblinSpawn> GoblinRoomPositions[3][3] =
+{
+	{
+		{ {7, 4} },
+		{ {2, 4} },
+		{ {8, 5} }
+	},
+	{
+		{ {3, 2} },
+		{ {3, 4} },
+		{ {4, 8} }
+	},
+	{
+		{ {6, 1} },
+		{ {4, 6} },
+		{ {1, 2} }
+	},
+
+};
 
 const std::string DungeonGame::RoomGrid[Grid_Size][Grid_Size] =
 {
@@ -91,18 +120,25 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 		}
 	}
 
+
+	for (Goblin* g : Goblins) 
+	{
+		delete g;
+	}
 	Goblins.clear();
 
-	Goblins.push_back
-	(
-		new Goblin(2, 3, tileSizeX, tileSizeY, goblinTexture)
-	);
+	for (const GoblinSpawn& spawn : GoblinRoomPositions[currentGridY][currentGridX])
+	{
+		Goblin* g = new Goblin(
+			spawn.x,
+			spawn.y,
+			tileSizeX,
+			tileSizeY,
+			goblinTexture
+		);
 
-	Goblins.push_back
-	(
-		new Goblin(7, 1, tileSizeX, tileSizeY, goblinTexture)
-	);
-
+		Goblins.push_back(g);
+	}
 
 	SDL_DestroySurface(surface);
 }
@@ -139,7 +175,8 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
  void DungeonGame::Update(double dt)
  {
-
+	 for (Goblin* g : Goblins)
+		 g->Update(dt, this);
  }
 
  //used chatgpt to help create a clean neighbouring system

@@ -21,6 +21,7 @@ const static std::string path_Goblin = "Textures/Enemy_orc_blue.png";
 extern int currentRoomIndex;
 const static int RoomSize = 10;
 
+//extern tells the system that this code exists elsewhere
 extern std::vector<Goblin*> Goblins;
 extern SDL_Texture* goblinTexture;
 
