@@ -58,6 +58,17 @@ DungeonGame::DungeonGame(float tileSizeX, float tileSizeY)
 	textures[0] = nullptr;
 	textures[1] = nullptr;
 
+	for (int y = 0; y < Grid_Size; ++y)
+	{
+		for (int x = 0; x < Grid_Size; ++x)
+		{
+			for (int g = 0; g < 3; ++g)
+			{
+				roomStates[y][x].GoblinAlive[g] = true;
+			}
+		}
+	}
+
 	std::srand(static_cast<unsigned int>(std::time(nullptr)));
 
 }
@@ -65,6 +76,10 @@ DungeonGame::DungeonGame(float tileSizeX, float tileSizeY)
 DungeonGame::~DungeonGame()
 {
 	delete this->Hero;
+
+	for (Goblin* g : Goblins)
+		delete g;
+	Goblins.clear();
 
 }
 
@@ -126,6 +141,8 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 		}
 	}
 
+	SDL_DestroySurface(surface);
+
 
 	for (Goblin* g : Goblins) 
 	{
@@ -133,20 +150,38 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	}
 	Goblins.clear();
 
+	int index = 0;
+
 	for (const GoblinSpawn& spawn : GoblinRoomPositions[currentGridY][currentGridX])
 	{
-		Goblin* g = new Goblin(
-			spawn.x,
-			spawn.y,
-			tileSizeX,
-			tileSizeY,
-			goblinTexture
-		);
+		if (index < 3 && roomStates[currentGridY][currentGridX].GoblinAlive[index])
+		{
+			Goblin* g = new Goblin(
+				spawn.x,
+				spawn.y,
+				tileSizeX,
+				tileSizeY,
+				goblinTexture
+			);
 
-		Goblins.push_back(g);
+			Goblins.push_back(g);
+
+		}
+		else if (index < 3 && !roomStates[currentGridY][currentGridX].GoblinAlive[index])
+		{
+			if (boneTexture)
+			{
+				Tile& t = Tiles[spawn.x][spawn.y];
+				t.Texture = boneTexture;
+				t.Walkable = true;
+			}
+		}
+
+		index++;
+		
 	}
-
-	SDL_DestroySurface(surface);
+	
+	
 }
 
  void DungeonGame::LoadNextRoom(Direction dir)
@@ -244,26 +279,35 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 		 {
 			 if (Goblins[i] == ActiveGoblin)
 			 {
+				 if (i < 3)
+				 {
+					 roomStates[currentGridY][currentGridX].GoblinAlive[i] = false;
+				 }
 				 delete Goblins[i];
 				 Goblins.erase(Goblins.begin() + i);
 				 break;
 			 }
 		 }
 
-		 Tile& tile = Tiles[gx][gy];
-		 tile.Texture = boneTexture;
-		 tile.type = TileType::Floor;
+		 if (boneTexture)
+		 {
+			 Tile& tile = Tiles[gx][gy];
+			 tile.Texture = boneTexture;
+			 tile.type = TileType::Floor;
+		 }
+		 
 
 		 ActiveGoblin = nullptr;
 		 InCombat = false;
 		 return;
 
 	 }
-	 else
-	 {
-		 SDL_Log("You lost, try again!");
-		 //then the player moves back to the original position at the start of the game.
-	 }
+	 
+	 
+	SDL_Log("You lost, try again!");
+	//then the player moves back to the original position at the start of the game.
+	InCombat = false;
+	 
 
  }
 

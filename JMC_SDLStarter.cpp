@@ -197,7 +197,8 @@ void PlayerMove(DungeonGame* Game, Direction dir)
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
 SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
-    
+    // keyboard events
+    // used CHATGPT to help clean up this section
     
     if (event->type == SDL_EVENT_QUIT)
     {
@@ -206,13 +207,7 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 
     if (Game->InCombat) 
     {
-        //if (event->key.scancode == SDL_SCANCODE_1)
-        //    Game->ResolveCombat(CombatChoice::Attack);
-        //else if (event->key.scancode == SDL_SCANCODE_2)
-        //    Game->ResolveCombat(CombatChoice::Defend);
-        //else if (event->key.scancode == SDL_SCANCODE_3)
-        //    Game->ResolveCombat(CombatChoice::Counter);
-
+      
         if (event->type == SDL_EVENT_KEY_DOWN)
         {
             CombatChoice choice;
@@ -245,27 +240,31 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
         return SDL_APP_CONTINUE;
 
     }
-        // keyboard events
-        // used CHATGPT to help clean up this section   
-        if (event->key.scancode == SDL_SCANCODE_W) 
+    
+    if (event->type == SDL_EVENT_KEY_DOWN)
+    {
+        switch (event->key.scancode)
         {
-            PlayerMove(Game, Direction::North);           
-        }
-        if (event->key.scancode == SDL_SCANCODE_S)
-        {
-            PlayerMove(Game, Direction::South);
-            
-        }
-        if (event->key.scancode == SDL_SCANCODE_A)
-        {
+        case SDL_SCANCODE_W:
+            PlayerMove(Game, Direction::North);
+            break;
 
+        case SDL_SCANCODE_S:
+            PlayerMove(Game, Direction::South);
+            break;
+
+        case SDL_SCANCODE_A:
             PlayerMove(Game, Direction::West);
-            
-        }
-        if (event->key.scancode == SDL_SCANCODE_D)
-        {
+            break;
+
+        case SDL_SCANCODE_D:
             PlayerMove(Game, Direction::East);
+            break;
+
         }
+    }
+           
+   
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
   

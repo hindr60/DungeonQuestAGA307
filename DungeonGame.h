@@ -50,6 +50,14 @@ public:
 
 	SDL_Texture* boneTexture = nullptr;
 
+	//to give each room its own "state
+	struct RoomState
+	{
+		bool GoblinAlive[3];
+	};
+
+	RoomState roomStates[3][3];
+
 
 	Tile* GetNeighbour(int currentX, int currentY, Direction dir);
 	float tileSizeX;
