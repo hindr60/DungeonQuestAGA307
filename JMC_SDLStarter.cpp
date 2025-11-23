@@ -123,6 +123,22 @@ void ResolveCombat(int playerChoice)
 }
 void PlayerMove(DungeonGame* Game, Direction dir) 
 {
+    if (Game->SwordPickup && !Game->SwordPickup->collected)
+    {
+        if (Game->Hero->playerTileX == Game->SwordPickup->tileX &&
+            Game->Hero->playerTileY == Game->SwordPickup->tileY)
+        {
+            Game->SwordCollected = true;
+            Game->SwordPickup->collected = true;
+
+            Game->Hero->Texture = IMG_LoadTexture(renderer, "Textures/Hero_sword.png");
+            SDL_SetTextureScaleMode(Game->Hero->Texture, SDL_SCALEMODE_NEAREST);
+
+            SDL_Log("You have picked up the Sword!");
+        }
+    }
+
+    //used chatgpt to help create a door system for loading new maps
     if (Game->InCombat) return;
 
     int px = Game->Hero->playerTileX;
@@ -163,12 +179,24 @@ void PlayerMove(DungeonGame* Game, Direction dir)
             bool adjacent = (abs(Game->Hero->playerTileX - g->tileX) == 1 && Game->Hero->playerTileY == g->tileY) ||
                             (abs(Game->Hero->playerTileY - g->tileY) == 1 && Game->Hero->playerTileX == g->tileX);
 
+            if (!Game->SwordCollected)
+            {
+                continue;
+            }
+
             if (adjacent) {
                 Game->InCombat = true;
+
+                if (!Game->SwordCollected)
+                {
+                    SDL_Log("The Goblin ignores you... you need a sword to fight!");
+                    Game->InCombat = false;
+                    continue;
+                }
                 ActiveGoblin = g;
                 SDL_Log("Combat has started! ");
                 SDL_Log("Press 1 to Attack, press 2 to Block, and press 3 to Counter.");
-                
+                return;
             }
         }
 
@@ -233,6 +261,8 @@ void PlayerMove(DungeonGame* Game, Direction dir)
             move.SetAction(MoveResultAction::Blocked);
         }
     }
+
+    
 }
   
 /* This function runs when a new event (mouse input, keypresses, etc) occurs. */
@@ -336,6 +366,11 @@ SDL_AppResult SDL_AppIterate(void* appstate)
                 SDL_RenderTexture(renderer, tile.Texture, nullptr, &tile.Rect);
         }
 
+    }
+
+    if (Game->SwordPickup && !Game->SwordPickup->collected)
+    {
+        Game->SwordPickup->Render(renderer);
     }
 
     SDL_RenderTexture(renderer, Game->Hero->Texture, NULL, &Game->Hero->Rect);

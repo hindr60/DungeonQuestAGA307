@@ -9,11 +9,13 @@
 #include "Enums.h"
 #include "MoveResult.h"
 #include "Goblin.h"
+#include "Pickup.h"
+
+
+class Pickup;
 
 const static std::string path_Hero = "Textures/Hero_no_sword.png";
 const static std::string path_Goblin = "Textures/Enemy_orc_blue.png";
-
-
 
 //const static std::string path_Map = "Data/Rooms/Room05.bmp";
 
@@ -35,6 +37,10 @@ public:
 	DungeonGame(float tileSizeX, float tileSizeY);
 	~DungeonGame();
 
+	Pickup* SwordPickup = nullptr;
+	int swordX = 5;
+	int swordY = 5;
+
 	SDL_Texture* textures[2];
 	void LoadTextures(SDL_Renderer* renderer);
 	void LoadRoom(const char* file);
@@ -43,11 +49,16 @@ public:
 	void Update(double dt);
 	bool GoblinPosition(int x, int y);
 
+	SDL_Renderer* Renderer = nullptr;
+
+	bool SwordCollected = false;
+	SDL_Texture* swordTexture = nullptr;
+	SDL_Texture* heroSwordTexture = nullptr;
+
 	Player* Hero;
 	Tile Tiles[RoomSize][RoomSize];
 
 	void ResolveCombat(CombatChoice player);
-
 	SDL_Texture* boneTexture = nullptr;
 
 	//to give each room its own "state
@@ -57,7 +68,6 @@ public:
 	};
 
 	RoomState roomStates[3][3];
-
 
 	Tile* GetNeighbour(int currentX, int currentY, Direction dir);
 	float tileSizeX;

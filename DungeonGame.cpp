@@ -57,6 +57,7 @@ DungeonGame::DungeonGame(float tileSizeX, float tileSizeY)
 
 	textures[0] = nullptr;
 	textures[1] = nullptr;
+
 	//used chatgpt to help the maps save the state they are in
 	for (int y = 0; y < Grid_Size; ++y)
 	{
@@ -85,6 +86,8 @@ DungeonGame::~DungeonGame()
 
 void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 {
+	Renderer = renderer;
+
 	SDL_Surface* surface = SDL_LoadBMP("Textures/Tile_carpet_base.bmp");
 	this->textures[0] = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_DestroySurface(surface);
@@ -100,6 +103,13 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 	boneTexture = IMG_LoadTexture(renderer, "Textures/Tile_carpet_bones.bmp");
 	SDL_SetTextureScaleMode(boneTexture, SDL_SCALEMODE_NEAREST);
+
+	swordTexture = IMG_LoadTexture(renderer, "Textures/Pickup_Sword.png");
+	SDL_SetTextureScaleMode(swordTexture, SDL_SCALEMODE_NEAREST);
+
+
+	heroSwordTexture = IMG_LoadTexture(renderer, "Textures/Hero_sword.bmp");
+	SDL_SetTextureScaleMode(heroSwordTexture, SDL_SCALEMODE_NEAREST);
 
 	this->Hero = new Player;
 	//Load all textures
@@ -141,6 +151,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 		}
 	}
 
+
 	SDL_DestroySurface(surface);
 
 
@@ -179,6 +190,24 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 		index++;
 		
+	}
+
+	if (currentGridX == 1 && currentGridY == 1)
+	{
+		if (SwordPickup == nullptr)
+		{
+			SwordPickup = new Pickup(swordX, swordY, tileSizeX, tileSizeY, swordTexture);
+		}
+		else
+		{
+			if (!SwordPickup->collected)
+			{
+				SwordPickup->tileX = swordX;
+				SwordPickup->tileY = swordY;
+				SwordPickup->Rect.x = swordX * tileSizeX;
+				SwordPickup->Rect.y = swordY * tileSizeY;
+			}
+		}
 	}
 	
 	
@@ -231,7 +260,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	 return false;
  }
 
- void DungeonGame::ResolveCombat(CombatChoice player)
+  void DungeonGame::ResolveCombat(CombatChoice player)
  {
 	 CombatChoice goblin = (CombatChoice)(std::rand() % 3);
 
@@ -304,8 +333,9 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	 }
 	 
 	 
-	SDL_Log("You lost, try again!");
-	//then the player moves back to the original position at the start of the game.
+	SDL_Log("You lost!");
+
+	//then the sword moves back to the original position at the start of the game.
 	InCombat = false;
 	 
 
