@@ -73,9 +73,32 @@ void PlayerMove(DungeonGame* Game, Direction dir)
 
     if (targetTile)
     {
-        if (targetTile->Walkable)
+        int nextX = Game->Hero->playerTileX;
+        int nextY = Game->Hero->playerTileY;
+
+        switch (dir) {
+        case Direction::North: nextY--; break;
+        case Direction::South: nextY++; break;
+        case Direction::East: nextX++; break;
+        case Direction::West: nextX--; break;
+        }
+
+        bool goblinBlocking = false;
+        for (Goblin* g : Goblins)
+        {
+            if (g->tileX == nextX && g->tileY == nextY)
+            {
+                goblinBlocking = true;
+                break;
+            }
+        }
+
+        bool tileWalkable = targetTile->Walkable && !goblinBlocking;
+
+        if (tileWalkable)
         {
             move.SetAction(MoveResultAction::MoveOK);
+
             Game->Hero->Move(dir);
             Game->Hero->Rect.x = Game->Hero->playerTileX * Game->tileSizeX;
             Game->Hero->Rect.y = Game->Hero->playerTileY * Game->tileSizeY;

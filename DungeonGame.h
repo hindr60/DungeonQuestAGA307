@@ -37,6 +37,7 @@ public:
 	void LoadNextRoom(Direction dir);
 
 	void Update(double dt);
+	bool GoblinPosition(int x, int y);
 
 	Player* Hero;
 	Tile Tiles[RoomSize][RoomSize];

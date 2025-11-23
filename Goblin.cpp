@@ -34,13 +34,26 @@ void Goblin::Update(double dt, DungeonGame* game)
 		int nextX = tileX + dirX;
 		int nextY = tileY + dirY;
 
+		bool canMove = false;
 
 		if (nextX >= 0 && nextX < RoomSize && nextY >= 0 && nextY < RoomSize && game->Tiles[nextX][nextY].Walkable)
 		{
+			Tile* t = &game->Tiles[nextX][nextY];
+
+			bool playerBlocking = (game->Hero->playerTileX == nextX && game->Hero->playerTileY == nextY);
+
+			if (t && t->Walkable && !playerBlocking)
+			{
+				canMove = true;
+			}
+		}
+
+		if (canMove) {
 			tileX = nextX;
 			tileY = nextY;
 			UpdateRect(game->tileSizeX, game->tileSizeY);
 		}
+
 		else
 		{
 			dirX = 0;

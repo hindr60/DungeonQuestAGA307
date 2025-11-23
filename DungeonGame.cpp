@@ -179,6 +179,17 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 		 g->Update(dt, this);
  }
 
+ //sets a position for the goblin and updates as it moves around the map
+ bool DungeonGame::GoblinPosition(int x, int y)
+ {
+	 for (Goblin* g : Goblins)
+	 {
+		 if (g->tileX == x && g->tileY == y)
+			 return true;
+	 }
+	 return false;
+ }
+
  //used chatgpt to help create a clean neighbouring system
  Tile* DungeonGame::GetNeighbour(int currentX, int currentY, Direction dir)
  {
