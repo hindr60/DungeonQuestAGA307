@@ -10,7 +10,8 @@
 #include "MoveResult.h"
 #include "Goblin.h"
 
-const static std::string path_Hero = "Textures/Hero_sword.png";
+const static std::string path_Hero = "Textures/Hero_no_sword.png";
+const static std::string path_Goblin = "Textures/Enemy_orc_blue.png";
 
 
 
@@ -20,10 +21,8 @@ const static std::string path_Hero = "Textures/Hero_sword.png";
 extern int currentRoomIndex;
 const static int RoomSize = 10;
 
-std::vector<Goblin*> Goblins;
-SDL_Texture* goblinTexture;
-
-
+extern std::vector<Goblin*> Goblins;
+extern SDL_Texture* goblinTexture;
 
 class DungeonGame
 {

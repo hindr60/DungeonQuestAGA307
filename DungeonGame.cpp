@@ -7,6 +7,9 @@
 
 int currentRoomIndex = 0;
 
+std::vector<Goblin*> Goblins;
+SDL_Texture* goblinTexture = nullptr;
+
 const std::string DungeonGame::RoomGrid[Grid_Size][Grid_Size] =
 {
 	{"Data/Rooms/Room01.bmp", "Data/Rooms/Room02.bmp", "Data/Rooms/Room03.bmp",},
@@ -44,6 +47,9 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	this->textures[1] = SDL_CreateTextureFromSurface(renderer, surface);
 	SDL_DestroySurface(surface);
 	//if (!textures[1]) SDL_Log("Failed to load Tile_Grey_base.bmp!");
+
+	goblinTexture = IMG_LoadTexture(renderer, path_Goblin.c_str());
+	SDL_SetTextureScaleMode(goblinTexture, SDL_SCALEMODE_NEAREST);
 
 	this->Hero = new Player;
 	//Load all textures
@@ -84,6 +90,19 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 		}
 	}
+
+	Goblins.clear();
+
+	Goblins.push_back
+	(
+		new Goblin(2, 3, tileSizeX, tileSizeY, goblinTexture)
+	);
+
+	Goblins.push_back
+	(
+		new Goblin(7, 1, tileSizeX, tileSizeY, goblinTexture)
+	);
+
 
 	SDL_DestroySurface(surface);
 }

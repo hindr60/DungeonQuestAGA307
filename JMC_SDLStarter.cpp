@@ -22,7 +22,8 @@ const int GridSizeY = 10;
 const float TileSize = resY / GridSizeX;
 //const = makes an integer unchangeable, in this case the resolution
 
-static const char* heroPath = "Textures/Hero_no_sword.png";
+//static const char* heroPath = "Textures/Hero_no_sword.png";
+//static const char* goblinPath = "Textures/Enemy_orc_blue.png";
 static SDL_Texture* heroTexture;
 
 static const int TileWidth = resX / 10;
@@ -163,6 +164,8 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     }
 
     SDL_RenderTexture(renderer, Game->Hero->Texture, NULL, &Game->Hero->Rect);
+    for (Goblin* g : Goblins)
+        g->Render(renderer);
 
     SDL_RenderPresent(renderer);  /* put it all on the screen! */
     return SDL_APP_CONTINUE;  /* carry on with the program! */
