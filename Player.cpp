@@ -26,8 +26,24 @@ void Player::Move(Direction dir)
 bool Player::CurrentTileAllowsVoidMovement(Direction dir, DungeonGame* game)
 {
 	Tile* nextTile = game->GetNeighbour(playerTileX, playerTileY, dir);
-	//if (!nextTile) return true;
-	return (nextTile == nullptr);
+	
+	if (nextTile != nullptr)
+		return false;
+
+	Tile* currentTile = &game->Tiles[playerTileX][playerTileY];
+
+	switch (dir)
+	{
+	case Direction::North:
+		return (currentTile->Door == DoorDirection::North);
+	case Direction::South:
+		return (currentTile->Door == DoorDirection::South);
+	case Direction::East:
+		return (currentTile->Door == DoorDirection::East);
+	case Direction::West:
+		return (currentTile->Door == DoorDirection::West);
+	}
+	return false;
 }
 
 void Player::SetPositionForNewRoom(Direction dir, int GridSizeX, int GridSizeY, float tileSizeX, float tileSizeY)

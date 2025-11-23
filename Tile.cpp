@@ -28,20 +28,35 @@ void Tile::Configure(SDL_Color& color, float x, float y, float size, SDL_Texture
 		Walkable = false;
 		Texture = textures[1];
 		type = TileType::Wall;
-		//Texture = nullptr;
+		Door = DoorDirection::None;
+		return;
 		
 	}
-	else if (CompareColours(color, white, 20)) {
-		Walkable = true;
-		Texture = textures[0];
-		type = TileType::Floor;
+	Walkable = true;
+	Texture = textures[0];
+	type = TileType::Floor;
+	Door = DoorDirection::None;
+	
+	if (x == 0)
+	{
+		Door = DoorDirection::West;
+		type = TileType::WestDoor;
 	}
-	else {
-		Walkable = true;
-		Texture = textures[0];
-		type = TileType::NorthDoor, EastDoor, SouthDoor, WestDoor;
+	else if (x == RoomSize - 1)
+	{
+		Door = DoorDirection::East;
+		type = TileType::EastDoor;
 	}
-
+	else if (y == 0)
+	{
+		Door = DoorDirection::North;
+		type = TileType::NorthDoor;
+	}
+	else if (y == RoomSize - 1)
+	{
+		Door = DoorDirection::South;
+		type = TileType::SouthDoor;
+	}
 }
 
 bool Tile::CurrentTileAllowsVoidMovement(int playerX, int playerY, Direction dir, DungeonGame* game)

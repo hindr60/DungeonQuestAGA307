@@ -123,47 +123,40 @@ void ResolveCombat(int playerChoice)
 }
 void PlayerMove(DungeonGame* Game, Direction dir) 
 {
-    Tile* targetTile = Game->GetNeighbour(Game->Hero->playerTileX, Game->Hero->playerTileY, dir);
-    MoveResult move(targetTile);
     if (Game->InCombat) return;
 
-    if (targetTile)
+    int px = Game->Hero->playerTileX;
+    int py = Game->Hero->playerTileY;
+
+    bool atLeft = (px == 0);
+    bool atRight = (px == RoomSize - 1);
+    bool atTop = (py == 0);
+    bool atBottom = (py == RoomSize - 1);
+
+    //chatgpt helped with loading room error 
+    if (dir == Direction::West && atLeft && Game->currentGridX == 0) return;
+    if (dir == Direction::East && atRight && Game->currentGridX == DungeonGame::Grid_Size - 1) return;
+    if (dir == Direction::North && atTop && Game->currentGridY == 0) return;
+    if (dir == Direction::South && atBottom && Game->currentGridY == DungeonGame::Grid_Size - 1) return;
+
+
+
+    Tile* targetTile = Game->GetNeighbour(px, py, dir);
+
+    MoveResult move(targetTile);
+
+    if (targetTile != nullptr)
     {
-        int nextX = Game->Hero->playerTileX;
-        int nextY = Game->Hero->playerTileY;
+        if (!targetTile->Walkable)
+            return;
 
-        switch (dir) {
-        case Direction::North: nextY--; break;
-        case Direction::South: nextY++; break;
-        case Direction::East: nextX++; break;
-        case Direction::West: nextX--; break;
-        }
-
-        bool goblinBlocking = false;
         for (Goblin* g : Goblins)
-        {
-            if (g->tileX == nextX && g->tileY == nextY)
-            {
-                goblinBlocking = true;
-                break;
-            }
-        }
+            if (g->tileX == targetTile->Rect.x / Game->tileSizeX && g->tileY == targetTile->Rect.y / Game->tileSizeY)
+                return;
 
-        bool tileWalkable = targetTile->Walkable && !goblinBlocking;
-
-        if (tileWalkable)
-        {
-            move.SetAction(MoveResultAction::MoveOK);
-
-            Game->Hero->Move(dir);
-            Game->Hero->Rect.x = Game->Hero->playerTileX * Game->tileSizeX;
-            Game->Hero->Rect.y = Game->Hero->playerTileY * Game->tileSizeY;
-        }
-        else
-        {
-            move.SetAction(MoveResultAction::Blocked);
-        }
-
+        Game->Hero->Move(dir);
+        Game->Hero->Rect.x = Game->Hero->playerTileX * Game->tileSizeX;
+        Game->Hero->Rect.y = Game->Hero->playerTileY * Game->tileSizeY;   
 
         for (Goblin* g : Goblins) 
         {
@@ -175,13 +168,61 @@ void PlayerMove(DungeonGame* Game, Direction dir)
                 ActiveGoblin = g;
                 SDL_Log("Combat has started! ");
                 SDL_Log("Press 1 to Attack, press 2 to Block, and press 3 to Counter.");
-                return;
+                
             }
         }
+
+        return;
     }
+
+    if (dir == Direction::West && atLeft) 
+    {
+        Game->LoadNextRoom(dir);
+        return;
+    }
+    if (dir == Direction::East && atRight)
+    {
+        Game->LoadNextRoom(dir); 
+        return;
+    }
+    if (dir == Direction::North && atTop)
+    {
+        Game->LoadNextRoom(dir);
+        return;
+    }
+    if (dir == Direction::South && atBottom)
+    {
+        Game->LoadNextRoom(dir);
+        return;
+    }
+
     else
     {
     //void tiles need to be handled here
+        bool canChangeRoom = false;
+
+        switch (dir)
+        {
+        case Direction::North:
+            canChangeRoom = (Game->currentGridY > 0);
+            break;
+        case Direction::South:
+            canChangeRoom = (Game->currentGridY < DungeonGame::Grid_Size - 1);
+            break;
+        case Direction::East:
+            canChangeRoom = (Game->currentGridX < DungeonGame::Grid_Size - 1);
+            break;
+        case Direction::West:
+            canChangeRoom = (Game->currentGridX > 0);
+            break;
+        }
+
+        if (!canChangeRoom)
+        {
+            move.SetAction(MoveResultAction::Blocked);
+            return;
+        }
+
         if (Game->Hero->CurrentTileAllowsVoidMovement(dir, Game)) 
         {
             move.SetAction(MoveResultAction::MoveOK);

@@ -57,7 +57,7 @@ DungeonGame::DungeonGame(float tileSizeX, float tileSizeY)
 
 	textures[0] = nullptr;
 	textures[1] = nullptr;
-
+	//used chatgpt to help the maps save the state they are in
 	for (int y = 0; y < Grid_Size; ++y)
 	{
 		for (int x = 0; x < Grid_Size; ++x)
@@ -151,7 +151,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	Goblins.clear();
 
 	int index = 0;
-
+	//used chatgpt for this part to help save information about the maps
 	for (const GoblinSpawn& spawn : GoblinRoomPositions[currentGridY][currentGridX])
 	{
 		if (index < 3 && roomStates[currentGridY][currentGridX].GoblinAlive[index])
