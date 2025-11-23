@@ -7,6 +7,7 @@
 void Goblin::Update(double dt, DungeonGame* game)
 {
 	if (!game) return;
+	if (game->InCombat) return;
 
 	moveTimer -= dt;
 

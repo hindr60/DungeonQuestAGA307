@@ -38,5 +38,8 @@ enum class DoorDirection
 	West
 };
 
+enum class CombatChoice { Attack, Defend, Counter };
+enum class CombatOutcome { PlayerWin, GoblinWin, Draw };
+
 
 

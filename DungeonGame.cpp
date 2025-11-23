@@ -3,9 +3,12 @@
 #include <SDL3_image/SDL_image.h>
 #include <cstdlib>
 #include <ctime>
-
+#include <iostream>
 
 int currentRoomIndex = 0;
+
+//combat setup
+Goblin* ActiveGoblin = nullptr;
 
 //using this will prevent circular dependancy errors
 std::vector<Goblin*> Goblins;
@@ -79,6 +82,9 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 	goblinTexture = IMG_LoadTexture(renderer, path_Goblin.c_str());
 	SDL_SetTextureScaleMode(goblinTexture, SDL_SCALEMODE_NEAREST);
+
+	boneTexture = IMG_LoadTexture(renderer, "Textures/Tile_carpet_bones.bmp");
+	SDL_SetTextureScaleMode(boneTexture, SDL_SCALEMODE_NEAREST);
 
 	this->Hero = new Player;
 	//Load all textures
@@ -188,6 +194,77 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 			 return true;
 	 }
 	 return false;
+ }
+
+ void DungeonGame::ResolveCombat(CombatChoice player)
+ {
+	 CombatChoice goblin = (CombatChoice)(std::rand() % 3);
+
+	 CombatOutcome result;
+	 std::string resultText;
+
+	 if (player == goblin)
+	 {
+		 result = CombatOutcome::Draw;
+		 resultText = "Draw!";
+	 }
+	 else if (
+		 (player == CombatChoice::Attack && goblin == CombatChoice::Counter) ||
+		 (player == CombatChoice::Defend && goblin == CombatChoice::Attack) ||
+		 (player == CombatChoice::Counter && goblin == CombatChoice::Defend)
+		 )
+	 {
+		 result = CombatOutcome::PlayerWin;
+		 resultText = "Player wins!";
+	 }
+	 else
+	 {
+		 result = CombatOutcome::GoblinWin;
+		 resultText = "Goblin wins!";
+	 }
+		 
+	 std::cout << "Combat outcome: " << resultText << std::endl;
+
+	 if (result == CombatOutcome::Draw)
+	 {
+		 SDL_Log("Draw! Choose from the options again: 1 is Attack, 2 is Defend, 3 is Counter");
+		 return;
+	 }
+
+	 InCombat = false;
+
+	 if (result == CombatOutcome::PlayerWin)
+	 {
+		 SDL_Log("Congrats! You have defeated the Goblin!");
+		 //then the goblin gets removed here
+		 int gx = ActiveGoblin->tileX;
+		 int gy = ActiveGoblin->tileY;
+
+		 for (int i = 0; i < Goblins.size(); i++)
+		 {
+			 if (Goblins[i] == ActiveGoblin)
+			 {
+				 delete Goblins[i];
+				 Goblins.erase(Goblins.begin() + i);
+				 break;
+			 }
+		 }
+
+		 Tile& tile = Tiles[gx][gy];
+		 tile.Texture = boneTexture;
+		 tile.type = TileType::Floor;
+
+		 ActiveGoblin = nullptr;
+		 InCombat = false;
+		 return;
+
+	 }
+	 else
+	 {
+		 SDL_Log("You lost, try again!");
+		 //then the player moves back to the original position at the start of the game.
+	 }
+
  }
 
  //used chatgpt to help create a clean neighbouring system

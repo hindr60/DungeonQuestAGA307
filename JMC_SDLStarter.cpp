@@ -8,6 +8,7 @@
 #include "Goblin.h"
 #include "Tile.h"
 #include "Enums.h"
+#include "CombatSystem.h"
 
 
 static Uint64 now;
@@ -65,11 +66,66 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
+void ResolveCombat(int playerChoice)
+{
+    if (!ActiveGoblin) return;
 
+    int goblinChoice = (std::rand() % 3) + 1;
+
+    std::string playerStr = (playerChoice == 1 ? "Rock" : playerChoice == 2 ? "Paper" : "Scissors");
+    //we already stated that the goblin choice is randomised whereas the player's choice depends on the key they press
+    std::string goblinStr = (goblinChoice == 1 ? "Rock" : goblinChoice == 2 ? "Paper" : "Scissors");
+
+    SDL_Log("Player has chosen %s | Goblin has chosen %s", playerStr.c_str(), goblinStr.c_str());
+
+    std::string result = " ";
+
+    //conditions for a draw
+    if (playerChoice == goblinChoice)
+    {
+        result = "Draw!";
+    }
+
+    //winning conditions
+    else if ((playerChoice == 1 && goblinChoice == 3) ||
+        (playerChoice == 2 && goblinChoice == 1) ||
+        (playerChoice == 3 && goblinChoice == 2))
+    {
+        result = "You have won! Goblin is defeated.";
+
+        //now to remove the goblin from the room and replace the tile texture with a bone carpet texture
+        for (int i = 0; i < Goblins.size(); i++)
+        {
+            if (Goblins[i] == ActiveGoblin)
+            {
+                delete Goblins[i];
+                Goblins.erase(Goblins.begin() + i);
+                break;
+            }
+        }
+
+        ActiveGoblin = nullptr;
+        Game->InCombat = false;
+        return;
+    }
+
+    //loss condition
+    else
+    {
+        result = "You have lost!";
+    }
+
+    SDL_Log("%s", result.c_str());
+
+    Game->InCombat = false;
+    ActiveGoblin = nullptr;
+
+}
 void PlayerMove(DungeonGame* Game, Direction dir) 
 {
     Tile* targetTile = Game->GetNeighbour(Game->Hero->playerTileX, Game->Hero->playerTileY, dir);
     MoveResult move(targetTile);
+    if (Game->InCombat) return;
 
     if (targetTile)
     {
@@ -107,6 +163,21 @@ void PlayerMove(DungeonGame* Game, Direction dir)
         {
             move.SetAction(MoveResultAction::Blocked);
         }
+
+
+        for (Goblin* g : Goblins) 
+        {
+            bool adjacent = (abs(Game->Hero->playerTileX - g->tileX) == 1 && Game->Hero->playerTileY == g->tileY) ||
+                            (abs(Game->Hero->playerTileY - g->tileY) == 1 && Game->Hero->playerTileX == g->tileX);
+
+            if (adjacent) {
+                Game->InCombat = true;
+                ActiveGoblin = g;
+                SDL_Log("Combat has started! ");
+                SDL_Log("Press 1 to Attack, press 2 to Block, and press 3 to Counter.");
+                return;
+            }
+        }
     }
     else
     {
@@ -128,12 +199,52 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
 {
     
     
-    if (event->type == SDL_EVENT_QUIT) {
+    if (event->type == SDL_EVENT_QUIT)
+    {
         return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
     }
-    
-    if (event->type == SDL_EVENT_KEY_DOWN)
+
+    if (Game->InCombat) 
     {
+        //if (event->key.scancode == SDL_SCANCODE_1)
+        //    Game->ResolveCombat(CombatChoice::Attack);
+        //else if (event->key.scancode == SDL_SCANCODE_2)
+        //    Game->ResolveCombat(CombatChoice::Defend);
+        //else if (event->key.scancode == SDL_SCANCODE_3)
+        //    Game->ResolveCombat(CombatChoice::Counter);
+
+        if (event->type == SDL_EVENT_KEY_DOWN)
+        {
+            CombatChoice choice;
+
+            switch (event->key.scancode)
+            {
+            case SDL_SCANCODE_1:
+                SDL_Log("Player has selected ATTACK");
+                choice = CombatChoice::Attack;
+                break;
+
+            case SDL_SCANCODE_2:
+                SDL_Log("Player has selected DEFEND");
+                choice = CombatChoice::Defend;
+                break;
+
+            case SDL_SCANCODE_3:
+                SDL_Log("Player has selected COUNTER");
+                choice = CombatChoice::Counter;
+                break;
+
+            default:
+                return SDL_APP_CONTINUE;
+            }
+
+            Game->ResolveCombat(choice);
+
+        }
+
+        return SDL_APP_CONTINUE;
+
+    }
         // keyboard events
         // used CHATGPT to help clean up this section   
         if (event->key.scancode == SDL_SCANCODE_W) 
@@ -156,11 +267,8 @@ SDL_AppResult SDL_AppEvent(void* appstate, SDL_Event* event)
             PlayerMove(Game, Direction::East);
         }
 
-    }
-
     return SDL_APP_CONTINUE;  /* carry on with the program! */
-   
-    
+  
 }
 
 /* This function runs once per frame, and is the heart of the program. */

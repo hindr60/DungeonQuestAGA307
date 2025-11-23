@@ -132,6 +132,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="DungeonGame.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="GameCharacter.h" />
@@ -142,6 +143,7 @@
     <ClInclude Include="Tile.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="DungeonGame.cpp" />
     <ClCompile Include="GameCharacter.cpp" />
     <ClCompile Include="Goblin.cpp" />

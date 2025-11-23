@@ -17,6 +17,8 @@ const static std::string path_Goblin = "Textures/Enemy_orc_blue.png";
 
 //const static std::string path_Map = "Data/Rooms/Room05.bmp";
 
+//combat system setup
+extern Goblin* ActiveGoblin;
 
 extern int currentRoomIndex;
 const static int RoomSize = 10;
@@ -28,6 +30,8 @@ extern SDL_Texture* goblinTexture;
 class DungeonGame
 {
 public:
+	bool InCombat = false;
+
 	DungeonGame(float tileSizeX, float tileSizeY);
 	~DungeonGame();
 
@@ -41,6 +45,10 @@ public:
 
 	Player* Hero;
 	Tile Tiles[RoomSize][RoomSize];
+
+	void ResolveCombat(CombatChoice player);
+
+	SDL_Texture* boneTexture = nullptr;
 
 
 	Tile* GetNeighbour(int currentX, int currentY, Direction dir);
