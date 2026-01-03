@@ -10,12 +10,16 @@
 #include "MoveResult.h"
 #include "Goblin.h"
 #include "Pickup.h"
+#include "Pathfinder.h"
+#include "Boss.h"
+
 
 
 class Pickup;
 
 const static std::string path_Hero = "Textures/Hero_no_sword.png";
 const static std::string path_Goblin = "Textures/Enemy_orc_blue.png";
+const static std::string path_Boss = "Textures/Minotaur.png";
 
 //const static std::string path_Map = "Data/Rooms/Room05.bmp";
 
@@ -28,6 +32,7 @@ const static int RoomSize = 10;
 //extern tells the system that this code exists elsewhere
 extern std::vector<Goblin*> Goblins;
 extern SDL_Texture* goblinTexture;
+
 
 class DungeonGame
 {
@@ -76,9 +81,26 @@ public:
 	int maxY = 9;
 	//Rect.x = playerTileX * tileSizeX;
 	//Rect.y = playerTileY * tileSizeY;
+
+	inline bool InBossRoom(int gx, int gy) 
+	{
+		return gx == 1 && gy == 1;
+	}
+
 	int currentGridX = 1;
 	int currentGridY = 1;
 
 	static const int Grid_Size = 3;
 	static const std::string RoomGrid[Grid_Size][Grid_Size];
+
+	//Boss setup below:
+	Boss* BossEnemy = nullptr;
+	Pathfinder PF;
+	std::vector<std::vector<bool>> RoomBlocked;
+
+	SDL_Texture* bossTexture = nullptr;
+	static constexpr int BossRoomX = 1;
+	static constexpr int BossRoomY = 1;
+
+	bool InBossRoom() const { return currentGridX == 1 && currentGridY == 1; }
 };

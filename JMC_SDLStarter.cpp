@@ -378,6 +378,11 @@ SDL_AppResult SDL_AppIterate(void* appstate)
     for (Goblin* g : Goblins)
         g->Render(renderer);
 
+    if (Game->InBossRoom() && Game->BossEnemy && Game->BossEnemy->alive)
+    {
+        Game->BossEnemy->Render(renderer);
+    }
+
     SDL_RenderPresent(renderer);  /* put it all on the screen! */
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 

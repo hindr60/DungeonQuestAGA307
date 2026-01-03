@@ -132,17 +132,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Boss.h" />
     <ClInclude Include="CombatSystem.h" />
     <ClInclude Include="DungeonGame.h" />
     <ClInclude Include="Enums.h" />
     <ClInclude Include="GameCharacter.h" />
     <ClInclude Include="Goblin.h" />
     <ClInclude Include="MoveResult.h" />
+    <ClInclude Include="Pathfinder.h" />
     <ClInclude Include="Pickup.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Tile.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Boss.cpp" />
     <ClCompile Include="CombatSystem.cpp" />
     <ClCompile Include="DungeonGame.cpp" />
     <ClCompile Include="GameCharacter.cpp" />
@@ -151,6 +154,7 @@
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Default</CompileAs>
     </ClCompile>
     <ClCompile Include="MoveResult.cpp" />
+    <ClCompile Include="Pathfinder.cpp" />
     <ClCompile Include="Pickup.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Tile.cpp" />

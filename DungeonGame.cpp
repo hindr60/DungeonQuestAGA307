@@ -101,6 +101,9 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	goblinTexture = IMG_LoadTexture(renderer, path_Goblin.c_str());
 	SDL_SetTextureScaleMode(goblinTexture, SDL_SCALEMODE_NEAREST);
 
+	bossTexture = IMG_LoadTexture(renderer, path_Boss.c_str());
+	SDL_SetTextureScaleMode(bossTexture, SDL_SCALEMODE_NEAREST);
+
 	boneTexture = IMG_LoadTexture(renderer, "Textures/Tile_carpet_bones.bmp");
 	SDL_SetTextureScaleMode(boneTexture, SDL_SCALEMODE_NEAREST);
 
@@ -129,6 +132,9 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	SDL_Surface* surface = SDL_LoadBMP(file);
 	//loads the bitmap and stores the surface into "surface"
 
+	int roomW = surface->w;
+	int roomH = surface->h;
+
 	const SDL_PixelFormatDetails* pixelDetails = SDL_GetPixelFormatDetails(surface->format);
 	
 	//this gets the surface format
@@ -154,13 +160,98 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 	SDL_DestroySurface(surface);
 
-
-	for (Goblin* g : Goblins) 
+	for (Goblin* g : Goblins)
 	{
 		delete g;
 	}
 	Goblins.clear();
 
+	if (!InBossRoom())
+	{
+		if (BossEnemy)
+		{
+			delete BossEnemy;
+			BossEnemy = nullptr;
+		}
+	}
+
+	RoomBlocked.assign(roomH, std::vector<bool>(roomW, false));
+	for (int y = 0; y < roomH; y++)
+	{
+		for (int x = 0; x < roomW; x++)
+		{
+			RoomBlocked[y][x] = !Tiles[x][y].Walkable;
+		}
+	}
+	
+	
+
+	if (!InBossRoom())
+	{
+		int index = 0;
+		for (const GoblinSpawn& spawn : GoblinRoomPositions[currentGridY][currentGridX])
+		{
+			if (index < 3 && roomStates[currentGridY][currentGridX].GoblinAlive[index])
+			{
+				Goblin* g = new Goblin(spawn.x, spawn.y, tileSizeX, tileSizeY, goblinTexture);
+				Goblins.push_back(g);
+			}
+
+			else if (index < 3 && !roomStates[currentGridY][currentGridX].GoblinAlive[index])
+			{
+				if (boneTexture)
+				{
+					Tile& t = Tiles[spawn.x][spawn.y];
+					t.Texture = boneTexture;
+					t.Walkable = true;
+				}
+			}
+
+			index++;
+		}
+	}
+
+	if (InBossRoom())
+	{
+		const int bossSpawnX = 1;
+		const int bossSpawnY = 1;
+
+		SDL_Texture* useTex = bossTexture ? bossTexture : goblinTexture;
+
+		if (BossEnemy == nullptr)
+		{
+			BossEnemy = new Boss(bossSpawnX, bossSpawnY, tileSizeX, tileSizeY, bossTexture ? bossTexture : goblinTexture);
+		}
+		else
+		{
+			BossEnemy->Texture = useTex;
+			BossEnemy->tileX = bossSpawnX;
+			BossEnemy->tileY = bossSpawnY;
+			BossEnemy->alive = true;
+			BossEnemy->path.clear();
+			BossEnemy->pathIndex = 0;
+			BossEnemy->repathTimer = 0.0;
+			BossEnemy->UpdateRect(tileSizeX, tileSizeY);
+		}
+	}
+	if (currentGridX == 1 && currentGridY == 1)
+	{
+		if (SwordPickup == nullptr)
+		{
+			SwordPickup = new Pickup(swordX, swordY, tileSizeX, tileSizeY, swordTexture);
+		}
+		else
+		{
+			if (!SwordPickup->collected)
+			{
+				SwordPickup->tileX = swordX;
+				SwordPickup->tileY = swordY;
+				SwordPickup->Rect.x = swordX * tileSizeX;
+				SwordPickup->Rect.y = swordY * tileSizeY;
+			}
+		}
+	}
+	
 	int index = 0;
 	//used chatgpt for this part to help save information about the maps
 	for (const GoblinSpawn& spawn : GoblinRoomPositions[currentGridY][currentGridX])
@@ -192,31 +283,19 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 		
 	}
 
-	if (currentGridX == 1 && currentGridY == 1)
-	{
-		if (SwordPickup == nullptr)
-		{
-			SwordPickup = new Pickup(swordX, swordY, tileSizeX, tileSizeY, swordTexture);
-		}
-		else
-		{
-			if (!SwordPickup->collected)
-			{
-				SwordPickup->tileX = swordX;
-				SwordPickup->tileY = swordY;
-				SwordPickup->Rect.x = swordX * tileSizeX;
-				SwordPickup->Rect.y = swordY * tileSizeY;
-			}
-		}
-	}
 	
 	
 }
 
  void DungeonGame::LoadNextRoom(Direction dir)
  {
-	 // if you want it randomised: int nextRoomIndex = std::rand() % 9;
 
+	 if (InBossRoom() && BossEnemy != nullptr && BossEnemy->alive)
+	 {
+		 return;
+	 }
+
+	 // if you want it randomised: int nextRoomIndex = std::rand() % 9;
 	 switch (dir)
 	 {
 	 case Direction::North: 
@@ -247,6 +326,11 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
  {
 	 for (Goblin* g : Goblins)
 		 g->Update(dt, this);
+
+	 if (InBossRoom() && BossEnemy != nullptr && BossEnemy->alive)
+	 {
+		 BossEnemy->Update(dt, this);
+	 }
  }
 
  //sets a position for the goblin and updates as it moves around the map
