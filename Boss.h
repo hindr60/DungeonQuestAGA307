@@ -19,6 +19,9 @@ public:
 	double repathTimer = 0.0;
 	double repathInterval = 0.5;
 
+	double moveTimer = 0.0;
+	double moveInterval = 0.60;
+
 	SDL_Texture* Texture = nullptr;
 	SDL_FRect Rect{};
 

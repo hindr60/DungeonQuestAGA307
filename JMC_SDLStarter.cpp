@@ -9,6 +9,7 @@
 #include "Tile.h"
 #include "Enums.h"
 #include "CombatSystem.h"
+#include "Boss.h"
 
 
 static Uint64 now;
@@ -23,8 +24,6 @@ const int GridSizeY = 10;
 const float TileSize = resY / GridSizeX;
 //const = makes an integer unchangeable, in this case the resolution
 
-//static const char* heroPath = "Textures/Hero_no_sword.png";
-//static const char* goblinPath = "Textures/Enemy_orc_blue.png";
 static SDL_Texture* heroTexture;
 
 static const int TileWidth = resX / 10;
@@ -66,9 +65,13 @@ SDL_AppResult SDL_AppInit(void** appstate, int argc, char* argv[])
 
     return SDL_APP_CONTINUE;  /* carry on with the program! */
 }
+
+class Boss;
+extern Boss* ActiveBoss;
+
 void ResolveCombat(int playerChoice)
 {
-    if (!ActiveGoblin) return;
+    if (!ActiveGoblin && !ActiveBoss) return;
 
     int goblinChoice = (std::rand() % 3) + 1;
 
@@ -117,8 +120,22 @@ void ResolveCombat(int playerChoice)
 
     SDL_Log("%s", result.c_str());
 
+    if (ActiveBoss)
+    {
+        SDL_Log("Congrats! The boss has been defeated!");
+
+        ActiveBoss->alive = false;
+        Game->InCombat = false;
+        ActiveBoss = nullptr;
+        return;
+    }
+
+
     Game->InCombat = false;
     ActiveGoblin = nullptr;
+    ActiveBoss = nullptr;
+
+    
 
 }
 void PlayerMove(DungeonGame* Game, Direction dir) 

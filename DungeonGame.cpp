@@ -9,6 +9,7 @@ int currentRoomIndex = 0;
 
 //combat setup
 Goblin* ActiveGoblin = nullptr;
+Boss* ActiveBoss = nullptr;
 
 //using this will prevent circular dependancy errors
 std::vector<Goblin*> Goblins;
@@ -127,6 +128,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 }
 
+
  void DungeonGame::LoadRoom(const char* file)
 {
 	SDL_Surface* surface = SDL_LoadBMP(file);
@@ -213,17 +215,50 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 	if (InBossRoom())
 	{
-		const int bossSpawnX = 1;
-		const int bossSpawnY = 1;
 
 		SDL_Texture* useTex = bossTexture ? bossTexture : goblinTexture;
+
+		int px = Hero->playerTileX;
+		int py = Hero->playerTileY;
+
+		int bossSpawnX = (RoomSize - 1) - px;
+		int bossSpawnY = (RoomSize - 1) - py;
+
+		bossSpawnX = std::max(0, std::min(RoomSize - 1, bossSpawnX));
+		bossSpawnY = std::max(0, std::min(RoomSize - 1, bossSpawnY));
+
+		auto IsWalkable = [&](int x, int y) -> bool
+		{
+			if (x < 0 || x >= RoomSize || y < 0 || y >= RoomSize) return false;
+		return Tiles[x][y].Walkable;
+		};
+
+		if (!IsWalkable(bossSpawnX, bossSpawnY))
+		{
+			bool found = false;
+			for (int r = 1; r < RoomSize && !found; r++)
+			{
+				for (int dy = -r; dy <= r && !found; dy++)
+				{
+					for (int dx = -r; dx <= r && !found; dx++)
+					{
+						int tx = bossSpawnX + dx;
+						int ty = bossSpawnY + dy;
+						if (IsWalkable(tx, ty))
+						{
+							bossSpawnX = tx;
+							bossSpawnY = ty;
+							found = true;
+						}
+					}
+				}
+			}
+		}
 
 		if (BossEnemy == nullptr)
 		{
 			BossEnemy = new Boss(bossSpawnX, bossSpawnY, tileSizeX, tileSizeY, bossTexture ? bossTexture : goblinTexture);
 		}
-		else
-		{
 			BossEnemy->Texture = useTex;
 			BossEnemy->tileX = bossSpawnX;
 			BossEnemy->tileY = bossSpawnY;
@@ -232,7 +267,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 			BossEnemy->pathIndex = 0;
 			BossEnemy->repathTimer = 0.0;
 			BossEnemy->UpdateRect(tileSizeX, tileSizeY);
-		}
+		
 	}
 	if (currentGridX == 1 && currentGridY == 1)
 	{
@@ -251,39 +286,6 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 			}
 		}
 	}
-	
-	int index = 0;
-	//used chatgpt for this part to help save information about the maps
-	for (const GoblinSpawn& spawn : GoblinRoomPositions[currentGridY][currentGridX])
-	{
-		if (index < 3 && roomStates[currentGridY][currentGridX].GoblinAlive[index])
-		{
-			Goblin* g = new Goblin(
-				spawn.x,
-				spawn.y,
-				tileSizeX,
-				tileSizeY,
-				goblinTexture
-			);
-
-			Goblins.push_back(g);
-
-		}
-		else if (index < 3 && !roomStates[currentGridY][currentGridX].GoblinAlive[index])
-		{
-			if (boneTexture)
-			{
-				Tile& t = Tiles[spawn.x][spawn.y];
-				t.Texture = boneTexture;
-				t.Walkable = true;
-			}
-		}
-
-		index++;
-		
-	}
-
-	
 	
 }
 
@@ -346,20 +348,23 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
   void DungeonGame::ResolveCombat(CombatChoice player)
  {
-	 CombatChoice goblin = (CombatChoice)(std::rand() % 3);
+	  if (!ActiveGoblin && !ActiveBoss)
+		  return;
+	  
+	  CombatChoice enemyChoice = (CombatChoice)(std::rand() % 3);
 
 	 CombatOutcome result;
 	 std::string resultText;
 
-	 if (player == goblin)
+	 if (player == enemyChoice)
 	 {
 		 result = CombatOutcome::Draw;
 		 resultText = "Draw!";
 	 }
 	 else if (
-		 (player == CombatChoice::Attack && goblin == CombatChoice::Counter) ||
-		 (player == CombatChoice::Defend && goblin == CombatChoice::Attack) ||
-		 (player == CombatChoice::Counter && goblin == CombatChoice::Defend)
+		 (player == CombatChoice::Attack && enemyChoice == CombatChoice::Counter) ||
+		 (player == CombatChoice::Defend && enemyChoice == CombatChoice::Attack) ||
+		 (player == CombatChoice::Counter && enemyChoice == CombatChoice::Defend)
 		 )
 	 {
 		 result = CombatOutcome::PlayerWin;
@@ -368,7 +373,7 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 	 else
 	 {
 		 result = CombatOutcome::GoblinWin;
-		 resultText = "Goblin wins!";
+		 resultText = "Enemy wins!";
 	 }
 		 
 	 std::cout << "Combat outcome: " << resultText << std::endl;
@@ -381,10 +386,35 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 	 InCombat = false;
 
+	 // ============================================================================================================
+	 //                                            PLAYER WINS
+	 // ============================================================================================================
 	 if (result == CombatOutcome::PlayerWin)
 	 {
+
+		 //BOSS DEFEATED SECTION
+		 if (ActiveBoss)
+		 {
+			 SDL_Log("Congrats! You have defeated the Boss!");
+
+			 ActiveBoss->alive = false;
+			 ActiveBoss = nullptr;
+
+			 ActiveGoblin = nullptr;
+
+			 InCombat = false;
+			 return;
+		 }
+
+		 //GOBLIN DEFEATED SECTION
+		 if (!ActiveGoblin)
+		 {
+			 InCombat = false;
+			 return;
+		 }
+
 		 SDL_Log("Congrats! You have defeated the Goblin!");
-		 //then the goblin gets removed here
+
 		 int gx = ActiveGoblin->tileX;
 		 int gy = ActiveGoblin->tileY;
 
@@ -416,13 +446,15 @@ void DungeonGame::LoadTextures(SDL_Renderer* renderer)
 
 	 }
 	 
+ // ================================================================================================================
+ //                                            ENEMY WINS BOSS/GOBLIN
+ // ================================================================================================================
 	 
 	SDL_Log("You lost!");
 
-	//then the sword moves back to the original position at the start of the game.
+	ActiveGoblin = nullptr;
+	ActiveBoss = nullptr;
 	InCombat = false;
-	 
-
  }
 
  //used chatgpt to help create a clean neighbouring system
